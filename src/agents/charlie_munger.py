@@ -60,9 +60,8 @@ def charlie_munger_agent(state: AgentState):
         progress.update_status("charlie_munger_agent", ticker, "Fetching insider trades")
         # Munger values management with skin in the game
         insider_trades = get_insider_trades(
-            ticker,
-            end_date,
-            # Look back 2 years for insider trading patterns
+            ticker=ticker,
+            end_date=end_date,
             start_date=None,
             limit=100
         )
@@ -283,8 +282,9 @@ def analyze_management_quality(financial_line_items: list, insider_trades: list)
     
     # 1. Capital allocation - Check FCF to net income ratio
     # Munger values companies that convert earnings to cash
-    fcf_values = [item.free_cash_flow for item in financial_line_items 
-                 if hasattr(item, 'free_cash_flow') and item.free_cash_flow is not None]
+    
+    
+    fcf_values = [getattr(fi, 'free_cash_flow', None) for fi in financial_line_items if getattr(fi, 'free_cash_flow', None) is not None]
     
     net_income_values = [item.net_income for item in financial_line_items 
                         if hasattr(item, 'net_income') and item.net_income is not None]

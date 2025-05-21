@@ -194,7 +194,7 @@ def analyze_consistency(financial_line_items: list) -> dict[str, any]:
     reasoning = []
 
     # Check earnings growth trend
-    earnings_values = [item.net_income for item in financial_line_items if item.net_income]
+    earnings_values = [getattr(item, 'net_income', None) for item in financial_line_items if getattr(item, 'net_income', None)]
     if len(earnings_values) >= 4:
         # Simple check: is each period's earnings bigger than the next?
         earnings_growth = all(earnings_values[i] > earnings_values[i + 1] for i in range(len(earnings_values) - 1))
@@ -316,9 +316,9 @@ def calculate_owner_earnings(financial_line_items: list) -> dict[str, any]:
 
     latest = financial_line_items[0]
 
-    net_income = latest.net_income
-    depreciation = latest.depreciation_and_amortization
-    capex = latest.capital_expenditure
+    net_income = getattr(latest, 'net_income', None)
+    depreciation = getattr(latest, 'depreciation_and_amortization', None)
+    capex = getattr(latest, 'capital_expenditure', None)
 
     if not all([net_income, depreciation, capex]):
         return {"owner_earnings": None, "details": ["Missing components for owner earnings calculation"]}
@@ -348,7 +348,7 @@ def calculate_intrinsic_value(financial_line_items: list) -> dict[str, any]:
 
     # Get current market data
     latest_financial_line_items = financial_line_items[0]
-    shares_outstanding = latest_financial_line_items.outstanding_shares
+    shares_outstanding = getattr(latest_financial_line_items, 'outstanding_shares', None)
 
     if not shares_outstanding:
         return {"intrinsic_value": None, "details": ["Missing shares outstanding data"]}

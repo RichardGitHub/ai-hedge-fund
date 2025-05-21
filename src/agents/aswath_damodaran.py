@@ -173,7 +173,8 @@ def analyze_growth_and_reinvestment(metrics: list, line_items: list) -> dict[str
         details.append("Revenue data incomplete")
 
     # FCFF growth (proxy: free_cash_flow trend)
-    fcfs = [li.free_cash_flow for li in reversed(line_items) if li.free_cash_flow]
+    fcfs = [getattr(fi, 'free_cash_flow', None) for fi in reversed(line_items) if getattr(fi, 'free_cash_flow', None) is not None]
+    
     if len(fcfs) >= 2 and fcfs[-1] > fcfs[0]:
         score += 1
         details.append("Positive FCFF growth")

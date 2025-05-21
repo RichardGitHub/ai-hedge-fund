@@ -4,6 +4,7 @@ from src.utils.progress import progress
 import pandas as pd
 import numpy as np
 import json
+import datetime
 
 from src.tools.api import get_insider_trades, get_company_news
 
@@ -15,6 +16,19 @@ def sentiment_agent(state: AgentState):
     end_date = data.get("end_date")
     tickers = data.get("tickers")
 
+    # Calculate start_date as one year before end_date for insider trades
+    try:
+        end_date_obj = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+        start_date_obj = end_date_obj - datetime.timedelta(days=365)
+        start_date_str_for_sentiment = start_date_obj.strftime("%Y-%m-%d") # Renamed for clarity
+    except (ValueError, TypeError) as e:
+        print(f" sentiment_agent: Error parsing end_date '{end_date}\' or calculating start_date: {e}. Defaulting start_date.")
+        today = datetime.date.today()
+        start_date_obj = today - datetime.timedelta(days=365)
+        start_date_str_for_sentiment = start_date_obj.strftime("%Y-%m-%d")
+        if end_date is None: 
+            end_date = today.strftime("%Y-%m-%d")
+
     # Initialize sentiment analysis for each ticker
     sentiment_analysis = {}
 
@@ -25,7 +39,8 @@ def sentiment_agent(state: AgentState):
         insider_trades = get_insider_trades(
             ticker=ticker,
             end_date=end_date,
-            limit=1000,
+            start_date=start_date_str_for_sentiment,
+            limit=100,
         )
 
         progress.update_status("sentiment_agent", ticker, "Analyzing trading patterns")
@@ -37,7 +52,7 @@ def sentiment_agent(state: AgentState):
         progress.update_status("sentiment_agent", ticker, "Fetching company news")
 
         # Get the company news
-        company_news = get_company_news(ticker, end_date, limit=100)
+        company_news = get_company_news(ticker, end_date, start_date=start_date_str_for_sentiment, limit=100)
 
         # Get the sentiment from the company news
         sentiment = pd.Series([n.sentiment for n in company_news]).dropna()

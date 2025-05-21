@@ -166,8 +166,8 @@ def analyze_business_quality(metrics: list, financial_line_items: list) -> dict:
         details.append("Not enough revenue data for multi-period trend.")
     
     # 2. Operating margin and free cash flow consistency
-    fcf_vals = [item.free_cash_flow for item in financial_line_items if item.free_cash_flow is not None]
-    op_margin_vals = [item.operating_margin for item in financial_line_items if item.operating_margin is not None]
+    fcf_vals = [getattr(fi, 'free_cash_flow', None) for fi in financial_line_items if getattr(fi, 'free_cash_flow', None) is not None]
+    op_margin_vals = [getattr(fi, 'operating_margin', None) for fi in financial_line_items if getattr(fi, 'operating_margin', None) is not None]
     
     if op_margin_vals:
         above_15 = sum(1 for m in op_margin_vals if m > 0.15)
@@ -302,8 +302,9 @@ def analyze_activism_potential(financial_line_items: list) -> dict:
         }
     
     # Check revenue growth vs. operating margin
-    revenues = [item.revenue for item in financial_line_items if item.revenue is not None]
-    op_margins = [item.operating_margin for item in financial_line_items if item.operating_margin is not None]
+    revenues = [getattr(fi, 'revenue', None) for fi in financial_line_items if getattr(fi, 'revenue', None) is not None]
+    op_margins = [getattr(fi, 'operating_margin', None) for fi in financial_line_items if getattr(fi, 'operating_margin', None) is not None]
+
     
     if len(revenues) < 2 or not op_margins:
         return {
@@ -345,9 +346,10 @@ def analyze_valuation(financial_line_items: list, market_cap: float) -> dict:
     # Since financial_line_items are in descending order (newest first),
     # the most recent period is the first element
     latest = financial_line_items[0]
-    fcf = latest.free_cash_flow if latest.free_cash_flow else 0
     
-    if fcf <= 0:
+    fcf_list = [getattr(fi, 'free_cash_flow', None) for fi in financial_line_items if getattr(fi, 'free_cash_flow', None) is not None]
+    fcf = fcf_list[0] if fcf_list else None
+    if fcf is None or fcf <= 0:
         return {
             "score": 0,
             "details": f"No positive FCF for valuation; FCF = {fcf}",

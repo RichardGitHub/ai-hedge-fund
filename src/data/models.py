@@ -87,12 +87,13 @@ class InsiderTrade(BaseModel):
     is_board_director: bool | None
     transaction_date: str | None
     transaction_shares: float | None
+    transaction_type: str | None  # 新增字段，表示交易类型，可能的值: "buy", "sell"
     transaction_price_per_share: float | None
     transaction_value: float | None
     shares_owned_before_transaction: float | None
     shares_owned_after_transaction: float | None
     security_title: str | None
-    filing_date: str
+    filing_date: str | None
 
 
 class InsiderTradeResponse(BaseModel):
